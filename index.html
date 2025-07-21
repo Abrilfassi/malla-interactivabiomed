@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Malla Curricular Interactiva</title>
+  <style>
+    :root {
+      --color-regular: #ffd6a5;
+      --color-aprobada: #b5ead7;
+      --color-bloque: #e0c3fc;
+      --color-titulo: #6a0572;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #fdf6ff;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--color-titulo);
+    }
+
+    .anio {
+      margin-bottom: 40px;
+    }
+
+    .bloque {
+      background: var(--color-bloque);
+      border-radius: 20px;
+      padding: 15px;
+      margin: 10px;
+      box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .bloque h2 {
+      font-size: 1.2rem;
+      margin-bottom: 10px;
+    }
+
+    .materia {
+      background: white;
+      border-radius: 10px;
+      margin: 6px 0;
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border-left: 8px solid transparent;
+    }
+
+    .materia.regular {
+      background: var(--color-regular);
+      border-left-color: orange;
+    }
+
+    .materia.aprobada {
+      background: var(--color-aprobada);
+      text-decoration: line-through;
+      border-left-color: green;
+    }
+
+    #avanceContainer {
+      max-width: 300px;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>Malla Curricular Interactiva</h1>
+
+  <div id="avanceContainer">
+    <canvas id="graficoAvance"></canvas>
+  </div>
+
+  <div class="anio">
+    <div class="bloque">
+      <h2>Ingreso</h2>
+      <div class="materia" onclick="cambiarEstado(this)" data-prerrequisitos="">Introducción a la Biología</div>
+      <div class="materia" onclick="cambiarEstado(this)" data-prerrequisitos="">Herramientas para el estudio</div>
+    </div>
+    <div class="bloque">
+      <h2>1.º Año - 1.º Cuatrimestre</h2>
+      <div class="materia" onclick="cambiarEstado(this)" data-prerrequisitos="">Biología Celular</div>
+      <div class="materia" onclick="cambiarEstado(this)" data-prerrequisitos="">Bioestadística</div>
+    </div>
+    <div class="bloque">
+      <h2>1.º Año - 2.º Cuatrimestre</h2>
+      <div class="materia" onclick="cambiarEstado(this)" data-prerrequisitos="Biología Celular">Genética</div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    let totalMaterias = 47; // Reemplazá por el número real
+
+    function cambiarEstado(elemento) {
+      if (elemento.classList.contains('aprobada')) {
+        elemento.classList.remove('aprobada');
+      } else if (elemento.classList.contains('regular')) {
+        elemento.classList.remove('regular');
+        elemento.classList.add('aprobada');
+      } else {
+        elemento.classList.add('regular');
+      }
+      actualizarGrafico();
+    }
+
+    function contarAprobadas() {
+      return document.querySelectorAll('.materia.aprobada').length;
+    }
+
+    function actualizarGrafico() {
+      const aprobadas = contarAprobadas();
+      const restante = totalMaterias - aprobadas;
+      graficoAvance.data.datasets[0].data = [aprobadas, restante];
+      graficoAvance.update();
+    }
+
+    const ctx = document.getElementById('graficoAvance');
+    const graficoAvance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Aprobadas', 'Restantes'],
+        datasets: [{
+          data: [0, totalMaterias],
+          backgroundColor: ['#b5ead7', '#f3f3f3'],
+        }]
+      },
+      options: {
+        plugins: {
+          legend: {
+            position: 'bottom'
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
