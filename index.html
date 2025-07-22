@@ -78,12 +78,13 @@
   <div class="anio">
     <div class="bloque">
       <h2>Ingreso</h2>
-      <div class="materia" onclick="cambiarEstado(this)" data-prerrequisitos="">Introducción a la Biología</div>
-      <div class="materia" onclick="cambiarEstado(this)" data-prerrequisitos="">Herramientas para el estudio</div>
+      <div class="materia" onclick="cambiarEstado(this)" data-prerrequisitos="">Ambientación Universitaria</div>
+      <div class="materia" onclick="cambiarEstado(this)" data-prerrequisitos="">Matemática</div>
+      <div class="materia" onclick="cambiarEstado(this)" data-prerrequisitos="">Física y Química</div>
     </div>
     <div class="bloque">
       <h2>1.º Año - 1.º Cuatrimestre</h2>
-      <div class="materia" onclick="cambiarEstado(this)" data-prerrequisitos="">Biología Celular</div>
+      <div class="materia" onclick="cambiarEstado(this)" data-prerrequisitos="Matemática:Aprobada">Análisis Matemático 1</div>
       <div class="materia" onclick="cambiarEstado(this)" data-prerrequisitos="">Bioestadística</div>
     </div>
     <div class="bloque">
@@ -97,18 +98,56 @@
     let totalMaterias = 47; // Reemplazá por el número real
 
     function cambiarEstado(elemento) {
-      if (elemento.classList.contains('aprobada')) {
-        elemento.classList.remove('aprobada');
-      } else if (elemento.classList.contains('regular')) {
-        elemento.classList.remove('regular');
-        elemento.classList.add('aprobada');
-      } else {
-        elemento.classList.add('regular');
-      }
-      actualizarGrafico();
-    }
+  const prereqs = elemento.getAttribute('data-prerrequisitos');
+  if (prereqs) {
+    // Ejemplo: "Biología Celular:aprobada, Bioestadística:regular"
+    const prereqList = prereqs.split(',').map(p => p.trim()).filter(p => p !== "");
 
-    function contarAprobadas() {
+    for (let prereq of prereqList) {
+      // Separar materia y estado (por defecto, si no hay ":", requiere aprobada)
+      let [materia, estadoReq] = prereq.split(':').map(x => x.trim());
+      if (!estadoReq) estadoReq = 'aprobada'; // valor por defecto
+
+      const materiaPrereq = Array.from(document.querySelectorAll('.materia'))
+        .find(m => m.textContent.trim() === materia);
+
+      if (!materiaPrereq) {
+        alert(`Prerrequisito "${materia}" no encontrado.`);
+        return;
+      }
+
+      // Estado actual de la materia prerequisito
+      const esRegular = materiaPrereq.classList.contains('regular');
+      const esAprobada = materiaPrereq.classList.contains('aprobada');
+
+      // Validar según estado requerido
+      if (estadoReq === 'aprobada' && !esAprobada) {
+        alert(`Para avanzar en "${elemento.textContent.trim()}", "${materia}" debe estar aprobada.`);
+        return;
+      }
+
+      if (estadoReq === 'regular' && !(esRegular || esAprobada)) {
+        alert(`Para avanzar en "${elemento.textContent.trim()}", "${materia}" debe estar como mínimo en regularidad.`);
+        return;
+      }
+    }
+  }
+
+  // Cambiar estado normalmente
+  if (elemento.classList.contains('aprobada')) {
+    elemento.classList.remove('aprobada');
+  } else if (elemento.classList.contains('regular')) {
+    elemento.classList.remove('regular');
+    elemento.classList.add('aprobada');
+  } else {
+    elemento.classList.add('regular');
+  }
+
+  actualizarGrafico();
+}
+
+
+  function contarAprobadas() {
       return document.querySelectorAll('.materia.aprobada').length;
     }
 
