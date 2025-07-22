@@ -5,12 +5,68 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Malla Curricular Interactiva</title>
   <style>
+    .materia.bloqueada {
+  cursor: not-allowed;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
     :root {
       --color-regular: #ffd6a5;
       --color-aprobada: #b5ead7;
       --color-bloque: #e0c3fc;
       --color-titulo: #6a0572;
     }
+function actualizarBloqueos() {
+  const materias = document.querySelectorAll('.materia');
+
+  materias.forEach(materia => {
+    const prereqs = materia.getAttribute('data-prerrequisitos');
+    if (!prereqs) {
+      materia.classList.remove('bloqueada');
+      materia.style.pointerEvents = 'auto';
+      return;
+    }
+
+    const prereqList = prereqs.split(',').map(p => p.trim()).filter(p => p !== "");
+
+    let bloqueada = false;
+
+    for (let prereq of prereqList) {
+      let [nombre, estadoReq] = prereq.split(':').map(x => x.trim());
+      if (!estadoReq) estadoReq = 'aprobada';
+
+      const materiaPrereq = Array.from(document.querySelectorAll('.materia'))
+        .find(m => m.textContent.trim() === nombre);
+
+      if (!materiaPrereq) {
+        bloqueada = true;
+        break;
+      }
+
+      const esRegular = materiaPrereq.classList.contains('regular');
+      const esAprobada = materiaPrereq.classList.contains('aprobada');
+
+      if (estadoReq === 'aprobada' && !esAprobada) {
+        bloqueada = true;
+        break;
+      }
+
+      if (estadoReq === 'regular' && !(esRegular || esAprobada)) {
+        bloqueada = true;
+        break;
+      }
+    }
+
+    if (bloqueada) {
+      materia.classList.add('bloqueada');
+      materia.style.pointerEvents = 'none';
+    } else {
+      materia.classList.remove('bloqueada');
+      materia.style.pointerEvents = 'auto';
+    }
+  });
+}
 
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -97,43 +153,9 @@
   <script>
     let totalMaterias = 47; // Reemplazá por el número real
 
-    function cambiarEstado(elemento) {
-  const prereqs = elemento.getAttribute('data-prerrequisitos');
-  if (prereqs) {
-    // Ejemplo: "Biología Celular:aprobada, Bioestadística:regular"
-    const prereqList = prereqs.split(',').map(p => p.trim()).filter(p => p !== "");
+   function cambiarEstado(elemento) {
+  // Como el click no se puede hacer si está bloqueada, no es necesario validar prereqs aquí
 
-    for (let prereq of prereqList) {
-      // Separar materia y estado (por defecto, si no hay ":", requiere aprobada)
-      let [materia, estadoReq] = prereq.split(':').map(x => x.trim());
-      if (!estadoReq) estadoReq = 'aprobada'; // valor por defecto
-
-      const materiaPrereq = Array.from(document.querySelectorAll('.materia'))
-        .find(m => m.textContent.trim() === materia);
-
-      if (!materiaPrereq) {
-        alert(`Prerrequisito "${materia}" no encontrado.`);
-        return;
-      }
-
-      // Estado actual de la materia prerequisito
-      const esRegular = materiaPrereq.classList.contains('regular');
-      const esAprobada = materiaPrereq.classList.contains('aprobada');
-
-      // Validar según estado requerido
-      if (estadoReq === 'aprobada' && !esAprobada) {
-        alert(`Para avanzar en "${elemento.textContent.trim()}", "${materia}" debe estar aprobada.`);
-        return;
-      }
-
-      if (estadoReq === 'regular' && !(esRegular || esAprobada)) {
-        alert(`Para avanzar en "${elemento.textContent.trim()}", "${materia}" debe estar como mínimo en regularidad.`);
-        return;
-      }
-    }
-  }
-
-  // Cambiar estado normalmente
   if (elemento.classList.contains('aprobada')) {
     elemento.classList.remove('aprobada');
   } else if (elemento.classList.contains('regular')) {
@@ -144,6 +166,7 @@
   }
 
   actualizarGrafico();
+  actualizarBloqueos();
 }
 
 
@@ -176,6 +199,10 @@
         }
       }
     });
+    window.onload = function() {
+  actualizarBloqueos();
+};
+
   </script>
 </body>
 </html>
